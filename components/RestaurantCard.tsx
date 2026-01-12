@@ -64,10 +64,18 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           📍 {restaurant.address}
         </p>
 
-        {/* TODO: Workshop Exercise 1 - Add opening hours display */}
-        {/* The data includes openingHours and closingHours fields */}
-        {/* Display them here with appropriate formatting */}
-        {/* Consider showing "Open Now" or "Closed" status */}
+        <div className="flex items-center mb-2 text-sm">
+          <span className="text-gray-600">
+            🕐 {restaurant.openingHours} - {restaurant.closingHours}
+          </span>
+          <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
+            isOpenNow(restaurant.openingHours, restaurant.closingHours)
+              ? 'bg-green-100 text-green-700'
+              : 'bg-red-100 text-red-700'
+          }`}>
+            {isOpenNow(restaurant.openingHours, restaurant.closingHours) ? 'Open Now' : 'Closed'}
+          </span>
+        </div>
 
         <p className="text-sm text-gray-500 line-clamp-2">{restaurant.description}</p>
 
@@ -82,6 +90,28 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       </div>
     </div>
   );
+}
+
+// Helper function to check if restaurant is currently open
+function isOpenNow(openingHours: string, closingHours: string): boolean {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour * 60 + currentMinute;
+
+  const [openHour, openMinute] = openingHours.split(':').map(Number);
+  const [closeHour, closeMinute] = closingHours.split(':').map(Number);
+
+  const openTime = openHour * 60 + openMinute;
+  let closeTime = closeHour * 60 + closeMinute;
+
+  // Handle overnight hours (e.g., closes at 02:00)
+  if (closeTime < openTime) {
+    // Restaurant is open overnight
+    return currentTime >= openTime || currentTime < closeTime;
+  }
+
+  return currentTime >= openTime && currentTime < closeTime;
 }
 
 // Helper function to get cuisine emoji
